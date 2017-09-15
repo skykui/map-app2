@@ -1,0 +1,89 @@
+<!Doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta http-equiv='Content-Type' content="text/html;charset=utf-8" />
+    <meta http-equiv='X-UA-Compatible' content="IE=edge,chrome=1" />
+    <meta content='always' name='referrer' />
+    <title>OpenLayers 21at Example</title>
+    <link th:href="@{/lib/ol4.3.2/ol.css}" href="../static/lib/ol4.3.2/ol.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" th:src="@{/lib/ol4.3.2/ol.js}" src="../static/lib/ol4.3.2/ol.js" charset="utf-8"></script>
+</head>
+
+<body>
+    <div><span>Zoom: </span><span id="zoom"></span><span>Resolution: </span><span id="resolution"></span></div>
+    <div id="map" style="width: 100%"></div>
+    <script type="text/javascript">
+        // var center = ol.proj.transform([104.06667, 30.66667], 'EPSG:4326', 'EPSG:3857');
+
+        // Open Street Map
+        var osmSource = new ol.source.OSM();
+        var openStreetMapLayer = new ol.layer.Tile({
+            source: osmSource
+        });
+        var debugLayer = new ol.layer.Tile({
+            source: new ol.source.TileDebug({
+                projection: 'EPSG:3857',
+                tileGrid: osmSource.getTileGrid()
+            })
+        });
+        var format = 'image/png';
+
+        var tiled = new ol.layer.Tile({
+          visible: true,
+          source: new ol.source.TileWMS({
+            url: 'http://192.168.106.37:8080/geoserver/asia21at/wms',
+            params: {'FORMAT': format,
+                     'VERSION': '1.1.1',
+                     tiled: true,
+                  STYLES: '',
+                  LAYERS: 'asia21at:sg_mp14_subzone_pl',
+               tilesOrigin: 2398.89331054688 + "," + 15576.1826171875
+           },
+           projection: 'EPSG:3414'
+
+          })
+        });
+
+
+        var map = new ol.Map({
+            controls: ol.control.defaults({
+                attributionOptions: ({
+                    collapsible: false
+                })
+            }),
+            // logo: false,     // don't display logo
+            // logo: 'face_monkey.png',     // use one image
+            logo: {
+                src: '../img/icon/21at(asia)logo.jpg',
+                href: 'http://www.21at.sg/'
+            },
+            layers: [
+                openStreetMapLayer,
+                tiled,
+                debugLayer
+            ],
+
+            view: new ol.View({
+                // extent: [102, 29, 104, 31],
+                center: ol.proj.transform(
+                    [103.852, 1.290], 'EPSG:4326', 'EPSG:3857'), // long,lat
+                projection: 'EPSG:3857',
+                zoom: 10,
+                // minZoom: 10,
+                // maxZoom: 14
+            }),
+
+            target: 'map'
+        });
+        map.getView().on('change:resolution', function() {
+            document.getElementById('zoom').innerHTML = this.getZoom() + '，';
+            document.getElementById('resolution').innerHTML = this.getResolution();
+        })
+
+        document.getElementById('zoom').innerHTML = map.getView().getZoom() + '，';
+        document.getElementById('resolution').innerHTML = +map.getView().getResolution();
+    </script>
+</body>
+
+</html>
